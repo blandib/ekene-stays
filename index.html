@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/styles.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="script/script.js" defer></script>
+    <title>EkeneStays | Luxury Room Booking</title>
+     <!-- Primary Meta Tags -->
+    <title>EkeneStays - Luxury Accommodations in Johannesburg</title>
+    <meta name="title" content="EkeneStays - Luxury Accommodations in Johannesburg">
+    <meta name="description" content="Experience luxury and comfort at EkeneStays. Beautifully designed rooms with premium amenities, exceptional service, and secure booking in Johannesburg.">
+    <meta name="keywords" content="EkeneStays, hotel, guest house, accommodation, Johannesburg, luxury rooms, executive suite, deluxe room, book hotel, South Africa">
+    <meta name="author" content="EkeneStays">
+    <meta name="robots" content="index, follow">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ekene-stays.com/">
+    <meta property="og:title" content="EkeneStays - Luxury Accommodations in Johannesburg">
+    <meta property="og:description" content="Experience luxury and comfort at EkeneStays. Beautifully designed rooms with premium amenities and exceptional service.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=400&q=80" alt="Deluxe Room" class="room-image">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ekene-stays.com/">
+    <meta property="twitter:title" content="EkeneStays - Luxury Accommodations in Johannesburg">
+    <meta property="twitter:description" content="Experience luxury and comfort at EkeneStays. Beautifully designed rooms with premium amenities and exceptional service.">
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=400&q=80" alt="Deluxe Room" class="room-image">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+   </head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <!--<i class="fas fa-hotel"></i>-->
+                    <img src="/images/maristaylogo1.png" alt="EkeneStays Logo" class="logo-image">
+                    <h1>Ekene<span>Stays</span></h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                        <li><a href="#rooms"><i class="fas fa-bed"></i> Rooms</a></li>
+                        <li><a href="#testimonials"><i class="fas fa-star"></i> Testimonials</a></li>
+                        <li><a href="#admin"><i class="fas fa-cog"></i> Admin</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h2>Find Your Perfect Stay</h2>
+            <p>Experience luxury and comfort in our beautifully designed rooms with premium amenities and exceptional service.</p>
+            <a href="#rooms" class="btn">View Our Rooms</a>
+        </div>
+    </section>
+
+    <!-- Rooms Section -->
+    <section class="rooms-section" id="rooms">
+        <div class="container">
+            <h2 class="section-title">Our Rooms</h2>
+            
+            <div class="rooms-grid">
+                <!-- Room 1 -->
+                <div class="room-card">
+                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=400&q=80" alt="Deluxe Room" class="room-image">
+                    <div class="room-details">
+                        <div class="room-title">
+                            <h3>Deluxe Room</h3>
+                            <div class="price">R400/night</div>
+                        </div>
+                        <p class="room-description">Spacious room with a king-size bed, modern amenities, and a beautiful city view. Perfect for couples or solo travelers seeking comfort and style.</p>
+                        
+                        <div class="amenities">
+                            <span class="amenity"><i class="fas fa-bed"></i> King Bed</span>
+                            <span class="amenity"><i class="fas fa-tv"></i> Smart TV</span>
+                            <span class="amenity"><i class="fas fa-wifi"></i> Free WiFi</span>
+                            <span class="amenity"><i class="fas fa-snowflake"></i> Air Conditioning</span>
+                            <span class="amenity"><i class="fas fa-coffee"></i> Coffee Maker</span>
+                        </div>
+                        
+                        <div class="booking-form">
+                            <div class="form-group">
+                                <label for="name-deluxe">Full Name</label>
+                                <input type="text" id="name-deluxe" required placeholder="Enter your full name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email-deluxe">Email Address</label>
+                                <input type="email" id="email-deluxe" required placeholder="Enter your email">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone-deluxe">Phone Number</label>
+                                <input type="tel" id="phone-deluxe" required placeholder="Enter your phone number">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="checkin-deluxe">Check-in Date</label>
+                                    <input type="date" id="checkin-deluxe" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="checkout-deluxe">Check-out Date</label>
+                                    <input type="date" id="checkout-deluxe" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="guests-deluxe">Number of Guests</label>
+                                <select id="guests-deluxe">
+                                    <option value="1">1 Guest</option>
+                                    <option value="2" selected>2 Guests</option>
+                                    <option value="3">3 Guests</option>
+                                    <option value="4">4 Guests</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="special-deluxe">Special Requests</label>
+                                <textarea id="special-deluxe" placeholder="Any special requests?"></textarea>
+                            </div>
+                            
+                            <button class="calculate-btn" onclick="calculatePrice('deluxe')">Calculate Total Price</button>
+                            
+                            <div id="total-deluxe" class="total-price"></div>
+                            <p class="discount-note">* Get 5% off for stays of 7+ nights</p>
+                            
+                            <div id="confirmation-deluxe" class="confirmation-message"></div>
+                            
+                            <button class="book-btn" onclick="bookRoom('deluxe')">
+                                <i class="fas fa-calendar-check"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Room 2 -->
+                <div class="room-card">
+                    <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=400&q=80" alt="Executive Suite" class="room-image">
+                    <div class="room-details">
+                        <div class="room-title">
+                            <h3>Executive Suite</h3>
+                            <div class="price">R300/night</div>
+                        </div>
+                        <p class="room-description">Luxurious suite with separate living area, premium amenities, and panoramic mountain views. Ideal for those seeking an elevated experience.</p>
+                        
+                        <div class="amenities">
+                            <span class="amenity"><i class="fas fa-bed"></i> King Bed</span>
+                            <span class="amenity"><i class="fas fa-couch"></i> Living Area</span>
+                            <span class="amenity"><i class="fas fa-hot-tub"></i> Jacuzzi</span>
+                            <span class="amenity"><i class="fas fa-mountain"></i> Mountain View</span>
+                            <span class="amenity"><i class="fas fa-wine-glass-alt"></i> Minibar</span>
+                            <span class="amenity"><i class="fas fa-utensils"></i> Room Service</span>
+                        </div>
+                        
+                        <div class="booking-form">
+                            <div class="form-group">
+                                <label for="name-executive">Full Name</label>
+                                <input type="text" id="name-executive" required placeholder="Enter your full name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email-executive">Email Address</label>
+                                <input type="email" id="email-executive" required placeholder="Enter your email">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone-executive">Phone Number</label>
+                                <input type="tel" id="phone-executive" required placeholder="Enter your phone number">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="checkin-executive">Check-in Date</label>
+                                    <input type="date" id="checkin-executive" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="checkout-executive">Check-out Date</label>
+                                    <input type="date" id="checkout-executive" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="guests-executive">Number of Guests</label>
+                                <select id="guests-executive">
+                                    <option value="1">1 Guest</option>
+                                    <option value="2" selected>2 Guests</option>
+                                    <option value="3">3 Guests</option>
+                                    <option value="4">4 Guests</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="special-executive">Special Requests</label>
+                                <textarea id="special-executive" placeholder="Any special requests?"></textarea>
+                            </div>
+                            
+                            <button class="calculate-btn" onclick="calculatePrice('executive')">Calculate Total Price</button>
+                            
+                            <div id="total-executive" class="total-price"></div>
+                            <p class="discount-note">* Get 10% off for stays of 7+ nights</p>
+                            
+                            <div id="confirmation-executive" class="confirmation-message"></div>
+                            
+                            <button class="book-btn" onclick="bookRoom('executive')">
+                                <i class="fas fa-calendar-check"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <h2 class="section-title">Why Choose Us</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure Booking</h3>
+                    <p>Your personal and payment information is protected with industry-standard encryption.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-thumbs-up"></i>
+                    </div>
+                    <h3>Best Price Guarantee</h3>
+                    <p>Found a lower price elsewhere? We'll match it and give you an additional 10% off.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>24/7 Support</h3>
+                    <p>Our customer service team is available around the clock to assist with any needs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-undo"></i>
+                    </div>
+                    <h3>Flexible Cancellation</h3>
+                    <p>Change of plans? Cancel for free up to 24 hours before your check-in date.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section" id="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Guests Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "Absolutely loved our stay at EkeneStays! The room was spacious, clean, and had all the amenities we needed. The staff was incredibly helpful and friendly."
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah Johnson" class="author-avatar">
+                        <div class="author-info">
+                            <h4>Sarah Johnson</h4>
+                            <p>Stayed in Deluxe Room</p>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "The Executive Suite was worth every rand! The view was breathtaking and the jacuzzi was the perfect way to relax after a long day of meetings."
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="https://randomuser.me/api/portraits/men/54.jpg" alt="James Wilson" class="author-avatar">
+                        <div class="author-info">
+                            <h4>James Wilson</h4>
+                            <p>Stayed in Executive Suite</p>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "We celebrated our anniversary at EkeneStays and it was perfect. The staff went above and beyond to make our stay special. Will definitely be back!"
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Lisa Brown" class="author-avatar">
+                        <div class="author-info">
+                            <h4>Lisa Brown</h4>
+                            <p>Stayed in Deluxe Room</p>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Panel -->
+    <section class="admin-panel" id="admin">
+        <div class="container">
+            <h2 class="section-title">Booking Management</h2>
+            <div class="bookings-list" id="bookings-list">
+                <p id="no-bookings">No bookings yet. New bookings will appear here.</p>
+                <!-- Bookings will be added here dynamically -->
+            </div>
+
+            <!-- Notification System Info -->
+            <div class="notification-system">
+                <h3 class="section-title">Notification System</h3>
+                <p>When a booking is made, the system automatically sends notifications to the owner:</p>
+                
+                <div class="notification-info">
+                    <div class="notification-card">
+                        <h4><i class="fas fa-envelope"></i> Email Notifications</h4>
+                        <p>Instant email alerts sent to the owner with booking details using SendGrid API.</p>
+                    </div>
+                    
+                    <div class="notification-card">
+                        <h4><i class="fas fa-sms"></i> SMS Notifications</h4>
+                        <p>Text message alerts sent to the owner's phone using Twilio API.</p>
+                    </div>
+                    
+                    <div class="notification-card">
+                        <h4><i class="fas fa-bell"></i> On-Site Alerts</h4>
+                        <p>Real-time notifications appear in the admin panel for immediate action.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Us</h3>
+                    <p>EkeneStays offers luxury accommodations with premium amenities and exceptional service. Our goal is to make your stay unforgettable.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tripadvisor"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+    <h3>Contact Info</h3>
+    <ul class="contact-info">
+        <li><i class="fas fa-map-marker-alt"></i> 186 7th Ave, Bezuidenhout Valley, Johannesburg, 2094, South Africa</li>
+        <li><i class="fas fa-phone"></i> +27 786591713</li>
+        <li><i class="fas fa-envelope"></i> Emmanuelekene2307@gmail.com</li>
+        <li><i class="fab fa-whatsapp"></i> <a href="https://wa.me/27786591713" style="color: white; text-decoration: none;">+27 78 659 1713</a></li>
+    </ul>
+</div>
+                
+                <div class="footer-section">
+                    <h3>Business Hours</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-clock"></i> Front Desk: 24/7</li>
+                        <li><i class="fas fa-coffee"></i> Breakfast: 7:00 AM - 11:00 AM</li>
+                        <li><i class="fas fa-swimming-pool"></i> Pool: 8:00 AM - 10:00 PM</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 EkeneStays. All rights reserved. | Privacy Policy | Terms of Service</p>
+                <p style="margin-top: 10px; font-size: 14px; opacity: 0.8;">
+                Developed by 
+                <a href="mailto:blandinebukasa118@gmail.com" 
+                   style="color: #ffd700; text-decoration: none; font-weight: bold;">
+                    BlandineTech
+                </a>
+            </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
