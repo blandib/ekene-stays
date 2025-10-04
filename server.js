@@ -361,7 +361,7 @@ async function sendEmailNotification(booking) {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK',
-    message: '🏨 EkeneStays API is running on Render!',
+    message: '🏨 EkeneStays API is running!',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     email: process.env.GMAIL_USER ? 'Configured' : 'Not configured'
@@ -371,7 +371,7 @@ app.get('/api/health', (req, res) => {
 // Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
-    message: '🎉 EkeneStays Backend is running on Render!', 
+    message: '🎉 EkeneStays Backend is running!', 
     timestamp: new Date().toLocaleString(),
     bookingsCount: bookings.length,
     environment: process.env.NODE_ENV || 'development',
@@ -512,9 +512,9 @@ app.delete('/api/bookings/:id', (req, res) => {
   }
 });
 
-// Start server - FIXED FOR RENDER
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => {
+// Start server - ONLY CHANGE THE PORT FOR RENDER
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
   console.log(`🚀 EkeneStays Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📧 Email: ${process.env.GMAIL_USER ? 'Configured' : 'Not configured'}`);
