@@ -296,8 +296,10 @@ const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-// In your server.js, make sure you have this:
+
+// Import notifications from the correct file
 const { sendEmailNotification, sendSMSNotification, sendGuestConfirmation } = require('./backend/notifications');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -306,8 +308,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Email transporter setup
-// Add this to your server.js temporarily
+// In-memory storage
+let bookings = [];
+let bookingIdCounter = 1;
+
+// Test email endpoint
 app.get('/api/test-email', async (req, res) => {
     try {
         const transporter = nodemailer.createTransporter({
@@ -320,7 +325,7 @@ app.get('/api/test-email', async (req, res) => {
 
         await transporter.sendMail({
             from: process.env.GMAIL_USER,
-            to: process.env.GMAIL_USER, // Send to yourself
+            to: process.env.GMAIL_USER,
             subject: '✅ Test Email from EkeneStays',
             text: 'If you receive this, email notifications are working!'
         });
@@ -331,47 +336,7 @@ app.get('/api/test-email', async (req, res) => {
     }
 });
 
-// In-memory storage
-let bookings = [];
-let bookingIdCounter = 1;
-
-// Email notification function
-async function sendEmailNotification(booking) {
-  try {
-    const transporter = createTransporter();
-    
-    const ownerMailOptions = {
-      from: process.env.GMAIL_USER,
-      to: process.env.GMAIL_USER,
-      subject: `📅 New Booking: ${booking.roomName} - ${booking.name}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2c3e50;">🏨 New Booking Received!</h2>
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-            <h3 style="color: #27ae60;">Booking Details:</h3>
-            <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-            <p><strong>Guest Name:</strong> ${booking.name}</p>
-            <p><strong>Room:</strong> ${booking.roomName}</p>
-            <p><strong>Check-in:</strong> ${booking.checkIn}</p>
-            <p><strong>Check-out:</strong> ${booking.checkOut}</p>
-            <p><strong>Guests:</strong> ${booking.guests}</p>
-            <p><strong>Total Price:</strong> R${booking.totalPrice}</p>
-            <p><strong>Contact:</strong> ${booking.email} | ${booking.phoneNumber}</p>
-            ${booking.specialRequests ? `<p><strong>Special Requests:</strong> ${booking.specialRequests}</p>` : ''}
-          </div>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(ownerMailOptions);
-    console.log('✅ Email sent successfully');
-    return true;
-  } catch (error) {
-    console.error('❌ Email sending failed:', error);
-    return false;
-  }
-}
-// Add this route to debug environment variables
+// Debug environment variables
 app.get('/api/debug-env', (req, res) => {
     res.json({
         GMAIL_USER: process.env.GMAIL_USER ? 'Set' : 'Not set',
@@ -382,228 +347,166 @@ app.get('/api/debug-env', (req, res) => {
         PROPERTY_NAME: process.env.PROPERTY_NAME ? 'Set' : 'Not set'
     });
 });
-// Update admin panel with bookings from backend
-async function updateAdminPanel() {
-    const bookingsList = document.getElementById('bookings-list');
-    const noBookings = document.getElementById('no-bookings');
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/bookings`);
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch bookings');
-        }
-        
-        const result = await response.json();
-        const bookings = result.data || [];
-        
-        // FIX: Check if elements exist before using style
-        if (bookings.length === 0) {
-            if (noBookings) noBookings.style.display = 'block';
-            if (bookingsList) bookingsList.innerHTML = '<p id="no-bookings">No bookings yet. New bookings will appear here.</p>';
-            return;
-        }
-        
-        if (noBookings) noBookings.style.display = 'none';
-        
-        // Sort bookings by creation date (newest first)
-        bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
-        let html = '';
-        bookings.forEach(booking => {
-            const statusClass = booking.status === 'confirmed' ? 'confirm-btn' : 
-                              booking.status === 'cancelled' ? 'cancel-btn' : '';
-            
-            html += `
-                <div class="booking-item">
-                    <div class="booking-info">
-                        <h4>${booking.roomName} - ${booking.name}</h4>
-                        <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-                        <p><strong>Dates:</strong> ${booking.checkIn} to ${booking.checkOut} (${booking.nights} nights)</p>
-                        <p><strong>Contact:</strong> ${booking.email} | ${booking.phoneNumber}</p>
-                        <p><strong>Guests:</strong> ${booking.guests} | <strong>Total:</strong> R${booking.totalPrice.toFixed(2)}</p>
-                        <p><strong>Status:</strong> <span class="${statusClass}">${booking.status}</span></p>
-                        <p><strong>Booked:</strong> ${new Date(booking.createdAt).toLocaleString()}</p>
-                        ${booking.specialRequests ? `<p><strong>Special Requests:</strong> ${booking.specialRequests}</p>` : ''}
-                    </div>
-                    <div class="booking-actions">
-                        <button class="action-btn confirm-btn" onclick="updateBookingStatus('${booking._id}', 'confirmed')">Confirm</button>
-                        <button class="action-btn cancel-btn" onclick="updateBookingStatus('${booking._id}', 'cancelled')">Cancel</button>
-                        <button class="action-btn" onclick="deleteBooking('${booking._id}')" style="background: #95a5a6; color: white;">Delete</button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        if (bookingsList) {
-            bookingsList.innerHTML = html;
-        }
-    } catch (error) {
-        console.error('Error fetching bookings:', error);
-        if (bookingsList) {
-            bookingsList.innerHTML = '<p>Error loading bookings. Please try refreshing the page.</p>';
-        }
-    }
-}
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK',
-    message: '🏨 EkeneStays API is running!',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    email: process.env.GMAIL_USER ? 'Configured' : 'Not configured'
-  });
+    res.json({ 
+        status: 'OK',
+        message: '🏨 EkeneStays API is running!',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        email: process.env.GMAIL_USER ? 'Configured' : 'Not configured'
+    });
 });
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
-  res.json({ 
-    message: '🎉 EkeneStays Backend is running!', 
-    timestamp: new Date().toLocaleString(),
-    bookingsCount: bookings.length,
-    environment: process.env.NODE_ENV || 'development',
-    email: process.env.GMAIL_USER ? 'Configured' : 'Not configured'
-  });
+    res.json({ 
+        message: '🎉 EkeneStays Backend is running!', 
+        timestamp: new Date().toLocaleString(),
+        bookingsCount: bookings.length,
+        environment: process.env.NODE_ENV || 'development',
+        email: process.env.GMAIL_USER ? 'Configured' : 'Not configured'
+    });
 });
 
 // Get all bookings
 app.get('/api/bookings', (req, res) => {
-  res.json({ 
-    success: true, 
-    data: bookings,
-    count: bookings.length
-  });
+    res.json({ 
+        success: true, 
+        data: bookings,
+        count: bookings.length
+    });
 });
 
 // Create new booking
 app.post('/api/bookings', async (req, res) => {
-  try {
-    const booking = {
-      _id: `booking_${bookingIdCounter++}`,
-      bookingId: `EKE${Date.now()}`,
-      ...req.body,
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    // Validate required fields
-    const requiredFields = ['name', 'email', 'phoneNumber', 'checkIn', 'checkOut', 'guests', 'totalPrice'];
-    for (const field of requiredFields) {
-      if (!booking[field]) {
-        return res.status(400).json({
-          success: false,
-          message: `Missing required field: ${field}`
+    try {
+        const booking = {
+            _id: `booking_${bookingIdCounter++}`,
+            bookingId: `EKE${Date.now()}`,
+            ...req.body,
+            status: 'pending',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        
+        // Validate required fields
+        const requiredFields = ['name', 'email', 'phoneNumber', 'checkIn', 'checkOut', 'guests', 'totalPrice'];
+        for (const field of requiredFields) {
+            if (!booking[field]) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Missing required field: ${field}`
+                });
+            }
+        }
+        
+        bookings.push(booking);
+        
+        console.log('📝 New booking received:', {
+            id: booking.bookingId,
+            name: booking.name,
+            room: booking.roomName,
+            total: `R${booking.totalPrice}`
         });
-      }
+        
+        // Send email notifications using the imported function
+        if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+            const emailSent = await sendEmailNotification(booking);
+            if (emailSent) {
+                console.log('✅ Email notifications sent');
+            }
+        }
+        
+        res.status(201).json({
+            success: true,
+            message: 'Booking created successfully',
+            data: booking,
+            emailSent: !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD)
+        });
+        
+    } catch (error) {
+        console.error('Error creating booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error creating booking'
+        });
     }
-    
-    bookings.push(booking);
-    
-    console.log('📝 New booking received:', {
-      id: booking.bookingId,
-      name: booking.name,
-      room: booking.roomName,
-      total: `R${booking.totalPrice}`
-    });
-    
-    // Send email notifications
-    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      const emailSent = await sendEmailNotification(booking);
-      if (emailSent) {
-        console.log('✅ Email notifications sent');
-      }
-    }
-    
-    res.status(201).json({
-      success: true,
-      message: 'Booking created successfully',
-      data: booking,
-      emailSent: !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD)
-    });
-    
-  } catch (error) {
-    console.error('Error creating booking:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating booking'
-    });
-  }
 });
 
 // Update booking status
 app.patch('/api/bookings/:id', (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-    
-    if (!status || !['pending', 'confirmed', 'cancelled'].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid status (pending, confirmed, cancelled) is required'
-      });
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        if (!status || !['pending', 'confirmed', 'cancelled'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid status (pending, confirmed, cancelled) is required'
+            });
+        }
+        
+        const bookingIndex = bookings.findIndex(b => b._id === id);
+        if (bookingIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+        
+        bookings[bookingIndex].status = status;
+        bookings[bookingIndex].updatedAt = new Date();
+        
+        res.json({
+            success: true,
+            message: 'Booking status updated',
+            data: bookings[bookingIndex]
+        });
+        
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating booking'
+        });
     }
-    
-    const bookingIndex = bookings.findIndex(b => b._id === id);
-    if (bookingIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found'
-      });
-    }
-    
-    bookings[bookingIndex].status = status;
-    bookings[bookingIndex].updatedAt = new Date();
-    
-    res.json({
-      success: true,
-      message: 'Booking status updated',
-      data: bookings[bookingIndex]
-    });
-    
-  } catch (error) {
-    console.error('Error updating booking:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating booking'
-    });
-  }
 });
 
 // Delete booking
 app.delete('/api/bookings/:id', (req, res) => {
-  try {
-    const { id } = req.params;
-    const initialLength = bookings.length;
-    
-    bookings = bookings.filter(b => b._id !== id);
-    
-    if (bookings.length === initialLength) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found'
-      });
+    try {
+        const { id } = req.params;
+        const initialLength = bookings.length;
+        
+        bookings = bookings.filter(b => b._id !== id);
+        
+        if (bookings.length === initialLength) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Booking deleted successfully'
+        });
+        
+    } catch (error) {
+        console.error('Error deleting booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting booking'
+        });
     }
-    
-    res.json({
-      success: true,
-      message: 'Booking deleted successfully'
-    });
-    
-  } catch (error) {
-    console.error('Error deleting booking:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting booking'
-    });
-  }
 });
 
-// Start server - ONLY CHANGE THE PORT FOR RENDER
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 EkeneStays Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📧 Email: ${process.env.GMAIL_USER ? 'Configured' : 'Not configured'}`);
+    console.log(`🚀 EkeneStays Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📧 Email: ${process.env.GMAIL_USER ? 'Configured' : 'Not configured'}`);
 });
