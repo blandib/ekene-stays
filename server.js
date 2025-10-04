@@ -381,6 +381,69 @@ app.get('/api/debug-env', (req, res) => {
         PROPERTY_NAME: process.env.PROPERTY_NAME ? 'Set' : 'Not set'
     });
 });
+// Update admin panel with bookings from backend
+async function updateAdminPanel() {
+    const bookingsList = document.getElementById('bookings-list');
+    const noBookings = document.getElementById('no-bookings');
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/bookings`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch bookings');
+        }
+        
+        const result = await response.json();
+        const bookings = result.data || [];
+        
+        // FIX: Check if elements exist before using style
+        if (bookings.length === 0) {
+            if (noBookings) noBookings.style.display = 'block';
+            if (bookingsList) bookingsList.innerHTML = '<p id="no-bookings">No bookings yet. New bookings will appear here.</p>';
+            return;
+        }
+        
+        if (noBookings) noBookings.style.display = 'none';
+        
+        // Sort bookings by creation date (newest first)
+        bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        let html = '';
+        bookings.forEach(booking => {
+            const statusClass = booking.status === 'confirmed' ? 'confirm-btn' : 
+                              booking.status === 'cancelled' ? 'cancel-btn' : '';
+            
+            html += `
+                <div class="booking-item">
+                    <div class="booking-info">
+                        <h4>${booking.roomName} - ${booking.name}</h4>
+                        <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+                        <p><strong>Dates:</strong> ${booking.checkIn} to ${booking.checkOut} (${booking.nights} nights)</p>
+                        <p><strong>Contact:</strong> ${booking.email} | ${booking.phoneNumber}</p>
+                        <p><strong>Guests:</strong> ${booking.guests} | <strong>Total:</strong> R${booking.totalPrice.toFixed(2)}</p>
+                        <p><strong>Status:</strong> <span class="${statusClass}">${booking.status}</span></p>
+                        <p><strong>Booked:</strong> ${new Date(booking.createdAt).toLocaleString()}</p>
+                        ${booking.specialRequests ? `<p><strong>Special Requests:</strong> ${booking.specialRequests}</p>` : ''}
+                    </div>
+                    <div class="booking-actions">
+                        <button class="action-btn confirm-btn" onclick="updateBookingStatus('${booking._id}', 'confirmed')">Confirm</button>
+                        <button class="action-btn cancel-btn" onclick="updateBookingStatus('${booking._id}', 'cancelled')">Cancel</button>
+                        <button class="action-btn" onclick="deleteBooking('${booking._id}')" style="background: #95a5a6; color: white;">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        if (bookingsList) {
+            bookingsList.innerHTML = html;
+        }
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+        if (bookingsList) {
+            bookingsList.innerHTML = '<p>Error loading bookings. Please try refreshing the page.</p>';
+        }
+    }
+}
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
