@@ -291,7 +291,7 @@ process.on('SIGINT', async () => {
 
 // Start the application
 startServer();*/
-const express = require('express');
+/*const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -509,4 +509,118 @@ app.listen(PORT, () => {
     console.log(`🚀 EkeneStays Server running on port ${PORT}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📧 Email: ${process.env.GMAIL_USER ? 'Configured' : 'Not configured'}`);
+});*/
+const express = require('express');
+const cors = require('cors');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static(__dirname));
+
+// Email transporter
+const emailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_EMAIL,
+        pass: process.env.GMAIL_APP_PASSWORD
+    }
+});
+
+// In-memory storage
+let bookings = [];
+let bookingIdCounter = 1;
+
+// Simple email function
+async function sendEmailNotification(booking) {
+    try {
+        console.log('📧 SENDING EMAIL TO:', process.env.CLIENT_EMAIL);
+        
+        // Email to property owner
+        await emailTransporter.sendMail({
+            from: process.env.GMAIL_EMAIL,
+            to: process.env.CLIENT_EMAIL,
+            subject: `🏨 New Booking: ${booking.roomName} - ${booking.name}`,
+            html: `
+                <h2>New Booking Received!</h2>
+                <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+                <p><strong>Guest:</strong> ${booking.name}</p>
+                <p><strong>Email:</strong> ${booking.email}</p>
+                <p><strong>Phone:</strong> ${booking.phoneNumber}</p>
+                <p><strong>Room:</strong> ${booking.roomName}</p>
+                <p><strong>Check-in:</strong> ${booking.checkIn}</p>
+                <p><strong>Check-out:</strong> ${booking.checkOut}</p>
+                <p><strong>Total:</strong> R${booking.totalPrice}</p>
+            `
+        });
+
+        console.log('✅ Email sent successfully to owner');
+        return true;
+    } catch (error) {
+        console.error('❌ Email failed:', error.message);
+        return false;
+    }
+}
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        message: '✅ Backend working!', 
+        timestamp: new Date().toLocaleString()
+    });
+});
+
+// Get all bookings
+app.get('/api/bookings', (req, res) => {
+    res.json({ 
+        success: true, 
+        data: bookings,
+        count: bookings.length
+    });
+});
+
+// Create booking
+app.post('/api/bookings', async (req, res) => {
+    try {
+        const booking = {
+            _id: `booking_${bookingIdCounter++}`,
+            bookingId: `EKE${Date.now()}`,
+            ...req.body,
+            status: 'pending',
+            createdAt: new Date()
+        };
+        
+        bookings.push(booking);
+        
+        console.log('📝 New booking:', booking.bookingId);
+        
+        // Send email
+        const emailSent = await sendEmailNotification(booking);
+        console.log('📧 Email result:', emailSent);
+        
+        res.status(201).json({
+            success: true,
+            message: 'Booking created!',
+            data: booking,
+            emailSent: emailSent
+        });
+        
+    } catch (error) {
+        console.error('Booking error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Booking failed'
+        });
+    }
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });

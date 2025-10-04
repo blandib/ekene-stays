@@ -261,6 +261,7 @@ async function saveBookingToDatabase(booking) {
 }
 
 // Update admin panel with bookings from backend
+// Update admin panel with bookings from backend
 async function updateAdminPanel() {
     const bookingsList = document.getElementById('bookings-list');
     const noBookings = document.getElementById('no-bookings');
@@ -275,13 +276,19 @@ async function updateAdminPanel() {
         const result = await response.json();
         const bookings = result.data || [];
         
+        // FIX: Check if elements exist
+        if (!bookingsList) {
+            console.log('Bookings list element not found');
+            return;
+        }
+        
         if (bookings.length === 0) {
-            noBookings.style.display = 'block';
+            if (noBookings) noBookings.style.display = 'block';
             bookingsList.innerHTML = '<p id="no-bookings">No bookings yet. New bookings will appear here.</p>';
             return;
         }
         
-        noBookings.style.display = 'none';
+        if (noBookings) noBookings.style.display = 'none';
         
         // Sort bookings by creation date (newest first)
         bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -315,7 +322,9 @@ async function updateAdminPanel() {
         bookingsList.innerHTML = html;
     } catch (error) {
         console.error('Error fetching bookings:', error);
-        bookingsList.innerHTML = '<p>Error loading bookings. Please try refreshing the page.</p>';
+        if (bookingsList) {
+            bookingsList.innerHTML = '<p>Error loading bookings. Please try refreshing the page.</p>';
+        }
     }
 }
 
