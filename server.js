@@ -306,15 +306,29 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // Email transporter setup
-const createTransporter = () => {
-  return nodemailer.createTransporter({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD
+// Add this to your server.js temporarily
+app.get('/api/test-email', async (req, res) => {
+    try {
+        const transporter = nodemailer.createTransporter({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD
+            }
+        });
+
+        await transporter.sendMail({
+            from: process.env.GMAIL_USER,
+            to: process.env.GMAIL_USER, // Send to yourself
+            subject: '✅ Test Email from EkeneStays',
+            text: 'If you receive this, email notifications are working!'
+        });
+
+        res.json({ success: true, message: 'Test email sent!' });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
     }
-  });
-};
+});
 
 // In-memory storage
 let bookings = [];
