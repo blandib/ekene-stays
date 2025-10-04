@@ -281,30 +281,8 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-/* Serve static files from root directory
-app.use(express.static(__dirname, {
-  index: false, // Don't serve index.html for all requests
-  extensions: ['html', 'css', 'js', 'png', 'jpg', 'ico', 'svg']
-}));
-
-// Your existing email setup and routes...
-
-// Serve the main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Serve other HTML pages if needed
-app.get('*.html', (req, res) => {
-  res.sendFile(path.join(__dirname, req.path));
-});*/
-// Serve static files from correct directories
+// Serve static files from ALL directories
 app.use(express.static(__dirname));
-
-// Serve the main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
 
 // API routes
 app.get('/api/test', (req, res) => {
@@ -315,57 +293,149 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Serve static files from correct subdirectories
-app.get('/styles.css', (req, res) => {
-  res.sendFile(path.join(__dirname, 'styles', 'styles.css'));
-});
+// Booking routes (add your existing booking logic here)
+let bookings = [];
+let bookingIdCounter = 1;
 
-app.get('/script.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'script', 'script.js'));
-});
-
-app.get('/images/:image', (req, res) => {
-  res.sendFile(path.join(__dirname, 'images', req.params.image));
-});
-
-// Your existing API routes...
-app.get('/api/test', (req, res) => {
+app.get('/api/bookings', (req, res) => {
   res.json({ 
-    message: '🎉 EkeneStays Backend is running!', 
-    timestamp: new Date().toLocaleString()
+    success: true, 
+    data: bookings,
+    count: bookings.length
   });
 });
 
-// Serve static files explicitly
-app.get('/styles.css', (req, res) => {
-  res.sendFile(path.join(__dirname, 'styles.css'));
-});
-
-app.get('/script.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'script.js'));
-});
-
-app.get('/images/:image', (req, res) => {
-  res.sendFile(path.join(__dirname, 'images', req.params.image));
-});
-
-// Catch-all route for SPA
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api/')) {
-    // API routes that don't exist
-    res.status(404).json({ error: 'API endpoint not found' });
-  } else if (req.path.includes('.')) {
-    // Static files that don't exist
-    res.status(404).send('File not found');
-  } else {
-    // SPA fallback
-    res.sendFile(path.join(__dirname, 'index.html'));
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const booking = {
+      _id: `booking_${bookingIdCounter++}`,
+      bookingId: `EKE${Date.now()}`,
+      ...req.body,
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Validate required fields
+    const requiredFields = ['name', 'email', 'phoneNumber', 'checkIn', 'checkOut', 'guests', 'totalPrice'];
+    for (const field of requiredFields) {
+      if (!booking[field]) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required field: ${field}`
+        });
+      }
+    }
+    
+    bookings.push(booking);
+    
+    console.log('📝 New booking received:', {
+      id: booking.bookingId,
+      name: booking.name,
+      room: booking.roomName,
+      total: `R${booking.totalPrice}`
+    });
+    
+    // Add your email notification logic here
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      console.log('📧 Email would be sent for booking:', booking.bookingId);
+    }
+    
+    res.status(201).json({
+      success: true,
+      message: 'Booking created successfully',
+      data: booking
+    });
+    
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating booking'
+    });
   }
+});
+
+app.patch('/api/bookings/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!status || !['pending', 'confirmed', 'cancelled'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid status (pending, confirmed, cancelled) is required'
+      });
+    }
+    
+    const bookingIndex = bookings.findIndex(b => b._id === id);
+    if (bookingIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+    
+    bookings[bookingIndex].status = status;
+    bookings[bookingIndex].updatedAt = new Date();
+    
+    res.json({
+      success: true,
+      message: 'Booking status updated',
+      data: bookings[bookingIndex]
+    });
+    
+  } catch (error) {
+    console.error('Error updating booking:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating booking'
+    });
+  }
+});
+
+app.delete('/api/bookings/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const initialLength = bookings.length;
+    
+    bookings = bookings.filter(b => b._id !== id);
+    
+    if (bookings.length === initialLength) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Booking deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error deleting booking:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting booking'
+    });
+  }
+});
+
+// Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Catch-all route - serve index.html for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Start server
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
+  console.log(`📁 Serving from: ${__dirname}`);
 });
 
 module.exports = app;
