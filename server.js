@@ -281,7 +281,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from root directory
+/* Serve static files from root directory
 app.use(express.static(__dirname, {
   index: false, // Don't serve index.html for all requests
   extensions: ['html', 'css', 'js', 'png', 'jpg', 'ico', 'svg']
@@ -297,6 +297,35 @@ app.get('/', (req, res) => {
 // Serve other HTML pages if needed
 app.get('*.html', (req, res) => {
   res.sendFile(path.join(__dirname, req.path));
+});*/
+// Serve static files from correct directories
+app.use(express.static(__dirname));
+
+// Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// API routes
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: '🎉 EkeneStays Backend is running!', 
+    timestamp: new Date().toLocaleString(),
+    status: 'working'
+  });
+});
+
+// Serve static files from correct subdirectories
+app.get('/styles.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'styles', 'styles.css'));
+});
+
+app.get('/script.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'script', 'script.js'));
+});
+
+app.get('/images/:image', (req, res) => {
+  res.sendFile(path.join(__dirname, 'images', req.params.image));
 });
 
 // Your existing API routes...
