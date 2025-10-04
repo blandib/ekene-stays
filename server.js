@@ -7,7 +7,6 @@ const { MongoClient } = require('mongodb');
 
 // Import notification services
 const { sendEmailNotification, sendSMSNotification, sendGuestConfirmation } = require('./ekenestays-backend/notifications');
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -132,6 +131,41 @@ app.get('/api/bookings', (req, res) => {
         count: bookings.length
     });
 });
+// Use your actual Vercel backend
+const API_BASE_URL = 'https://ekene-stays.vercel.app/api';
+
+// Test if backend is working
+async function testBackendConnection() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/test`);
+        const data = await response.json();
+        console.log('✅ Backend connected:', data.message);
+        showBackendStatus('✅ Backend connected', 'success');
+        return true;
+    } catch (error) {
+        console.error('❌ Backend connection failed:', error);
+        showBackendStatus('❌ Backend server not running', 'error');
+        return false;
+    }
+}
+
+// All your existing functions remain the same
+async function saveBookingToDatabase(booking) {
+    const response = await fetch(`${API_BASE_URL}/bookings`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(booking)
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to save booking');
+    }
+    
+    const result = await response.json();
+    return result.data;
+}
 
 // Create new booking
 app.post('/api/bookings', async (req, res) => {
