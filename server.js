@@ -370,7 +370,17 @@ async function sendEmailNotification(booking) {
     return false;
   }
 }
-
+// Add this route to debug environment variables
+app.get('/api/debug-env', (req, res) => {
+    res.json({
+        GMAIL_USER: process.env.GMAIL_USER ? 'Set' : 'Not set',
+        GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD ? 'Set' : 'Not set',
+        GMAIL_EMAIL: process.env.GMAIL_EMAIL ? 'Set' : 'Not set',
+        CLIENT_EMAIL: process.env.CLIENT_EMAIL ? 'Set' : 'Not set',
+        CLIENT_PHONE: process.env.CLIENT_PHONE ? 'Set' : 'Not set',
+        PROPERTY_NAME: process.env.PROPERTY_NAME ? 'Set' : 'Not set'
+    });
+});
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
