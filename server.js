@@ -537,36 +537,69 @@ let bookings = [];
 let bookingIdCounter = 1;
 
 // Simple email function
+// Send email to BOTH owner and guest
 async function sendEmailNotification(booking) {
     try {
-        console.log('📧 SENDING EMAIL TO:', process.env.CLIENT_EMAIL);
+        console.log('📧 SENDING EMAILS...');
+        console.log('To Owner:', process.env.CLIENT_EMAIL);
+        console.log('To Guest:', booking.email);
         
-        // Email to property owner
+        // 1. Email to Property Owner (YOU)
         await emailTransporter.sendMail({
             from: process.env.GMAIL_EMAIL,
-            to: process.env.CLIENT_EMAIL,
+            to: process.env.CLIENT_EMAIL, // This goes to YOU
             subject: `🏨 New Booking: ${booking.roomName} - ${booking.name}`,
             html: `
-                <h2>New Booking Received!</h2>
-                <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-                <p><strong>Guest:</strong> ${booking.name}</p>
-                <p><strong>Email:</strong> ${booking.email}</p>
-                <p><strong>Phone:</strong> ${booking.phoneNumber}</p>
-                <p><strong>Room:</strong> ${booking.roomName}</p>
-                <p><strong>Check-in:</strong> ${booking.checkIn}</p>
-                <p><strong>Check-out:</strong> ${booking.checkOut}</p>
-                <p><strong>Total:</strong> R${booking.totalPrice}</p>
+                <h2>🎉 New Booking Received!</h2>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h3>Booking Details:</h3>
+                    <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+                    <p><strong>Guest Name:</strong> ${booking.name}</p>
+                    <p><strong>Email:</strong> ${booking.email}</p>
+                    <p><strong>Phone:</strong> ${booking.phoneNumber}</p>
+                    <p><strong>Room:</strong> ${booking.roomName}</p>
+                    <p><strong>Check-in:</strong> ${booking.checkIn}</p>
+                    <p><strong>Check-out:</strong> ${booking.checkOut}</p>
+                    <p><strong>Guests:</strong> ${booking.guests}</p>
+                    <p><strong>Total Price:</strong> R${booking.totalPrice}</p>
+                    ${booking.specialRequests ? `<p><strong>Special Requests:</strong> ${booking.specialRequests}</p>` : ''}
+                </div>
             `
         });
 
-        console.log('✅ Email sent successfully to owner');
+        // 2. Email to Guest (YOUR FRIEND)
+        await emailTransporter.sendMail({
+            from: process.env.GMAIL_EMAIL,
+            to: booking.email, // This goes to YOUR FRIEND
+            subject: `✅ Booking Confirmed - ${booking.bookingId}`,
+            html: `
+                <h2>✅ Booking Confirmed!</h2>
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 8px;">
+                    <h3>Dear ${booking.name},</h3>
+                    <p>Thank you for booking with EkeneStays! Your reservation has been confirmed.</p>
+                    <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+                    <p><strong>Property:</strong> ${booking.roomName}</p>
+                    <p><strong>Check-in:</strong> ${booking.checkIn}</p>
+                    <p><strong>Check-out:</strong> ${booking.checkOut}</p>
+                    <p><strong>Guests:</strong> ${booking.guests}</p>
+                    <p><strong>Total Amount:</strong> R${booking.totalPrice}</p>
+                </div>
+                <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <h4>📞 Contact Information</h4>
+                    <p>If you have any questions, please contact us:</p>
+                    <p><strong>Email:</strong> ${process.env.CLIENT_EMAIL}</p>
+                    <p><strong>Phone:</strong> ${process.env.CLIENT_PHONE}</p>
+                </div>
+            `
+        });
+
+        console.log('✅ BOTH emails sent successfully!');
         return true;
     } catch (error) {
         console.error('❌ Email failed:', error.message);
         return false;
     }
 }
-
 // Test endpoint
 app.get('/api/test', (req, res) => {
     res.json({ 
