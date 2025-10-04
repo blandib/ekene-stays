@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -260,4 +260,162 @@ process.on('SIGINT', async () => {
 });
 
 // Start the application
-startServer();
+startServer();*/
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static(__dirname));
+
+// In-memory storage (temporary)
+let bookings = [];
+let bookingIdCounter = 1;
+
+// Root route - serve HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK',
+        message: '🏨 EkeneStays API is running!',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        message: '🎉 EkeneStays Backend is running!', 
+        timestamp: new Date().toLocaleString(),
+        bookingsCount: bookings.length
+    });
+});
+
+// Get all bookings
+app.get('/api/bookings', (req, res) => {
+    res.json({ 
+        success: true, 
+        data: bookings,
+        count: bookings.length
+    });
+});
+
+// Create new booking
+app.post('/api/bookings', async (req, res) => {
+    try {
+        const booking = {
+            _id: `booking_${bookingIdCounter++}`,
+            bookingId: `EKE${Date.now()}`,
+            ...req.body,
+            status: 'pending',
+            createdAt: new Date()
+        };
+        
+        // Validate required fields
+        const requiredFields = ['name', 'email', 'phoneNumber', 'checkIn', 'checkOut', 'guests', 'totalPrice'];
+        for (const field of requiredFields) {
+            if (!booking[field]) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Missing required field: ${field}`
+                });
+            }
+        }
+        
+        bookings.push(booking);
+        
+        console.log('📝 New booking received:', {
+            id: booking.bookingId,
+            name: booking.name,
+            room: booking.roomName,
+            total: `R${booking.totalPrice}`
+        });
+        
+        res.status(201).json({
+            success: true,
+            message: 'Booking created successfully',
+            data: booking
+        });
+        
+    } catch (error) {
+        console.error('Error creating booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error creating booking'
+        });
+    }
+});
+
+// Update booking status
+app.patch('/api/bookings/:id', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    const bookingIndex = bookings.findIndex(b => b._id === id);
+    if (bookingIndex === -1) {
+        return res.status(404).json({
+            success: false,
+            message: 'Booking not found'
+        });
+    }
+    
+    bookings[bookingIndex].status = status;
+    
+    res.json({
+        success: true,
+        message: 'Booking status updated',
+        data: bookings[bookingIndex]
+    });
+});
+
+// Delete booking
+app.delete('/api/bookings/:id', (req, res) => {
+    const { id } = req.params;
+    const initialLength = bookings.length;
+    
+    bookings = bookings.filter(b => b._id !== id);
+    
+    if (bookings.length === initialLength) {
+        return res.status(404).json({
+            success: false,
+            message: 'Booking not found'
+        });
+    }
+    
+    res.json({
+        success: true,
+        message: 'Booking deleted successfully'
+    });
+});
+
+// Serve static files explicitly
+app.get('/styles.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'styles.css'));
+});
+
+app.get('/script.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'script.js'));
+});
+
+// Catch-all route for SPA
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Start server
+app.listen(port, () => {
+    console.log(`🚀 EkeneStays Server started on port ${port}`);
+});
+
+module.exports = app;
