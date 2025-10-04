@@ -296,7 +296,8 @@ const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-
+// In your server.js, make sure you have this:
+const { sendEmailNotification, sendSMSNotification, sendGuestConfirmation } = require('./backend/notifications');
 const app = express();
 const port = process.env.PORT || 3000;
 
