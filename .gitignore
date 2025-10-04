@@ -15,3 +15,7 @@ Thumbs.db
 # Optional: build artifacts
 dist/
 build/
+node_modules/
+.env
+.DS_Store
+*.log
