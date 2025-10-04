@@ -1,146 +1,5 @@
+
 /*const express = require('express');
-const cors = require('cors');
-const app = express();
-const { MongoClient } = require('mongodb');
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Root route - to avoid "Cannot GET /" error
-app.get('/', (req, res) => {
-    res.json({ 
-        message: '🏨 EkeneStays Backend API is running!', 
-        status: 'OK',
-        timestamp: new Date().toLocaleString(),
-        endpoints: {
-            test: 'GET /api/test',
-            getBookings: 'GET /api/bookings',
-            createBooking: 'POST /api/bookings'
-        }
-    });
-});
-
-// Store bookings in memory
-let bookings = [];
-let bookingIdCounter = 1;
-
-// Test route
-app.get('/api/test', (req, res) => {
-    res.json({ 
-        message: '🎉 EkeneStays Backend is running!', 
-        timestamp: new Date().toLocaleString(),
-        bookingsCount: bookings.length
-    });
-});
-
-// Get all bookings
-app.get('/api/bookings', (req, res) => {
-    res.json({ 
-        success: true, 
-        data: bookings,
-        count: bookings.length
-    });
-});
-// Root route - to avoid "Cannot GET /" error
-app.get('/', (req, res) => {
-    res.json({ 
-        message: '🏨 EkeneStays Backend API is running!', 
-        status: 'OK',
-        timestamp: new Date().toLocaleString(),
-        endpoints: {
-            test: 'GET /api/test',
-            getBookings: 'GET /api/bookings',
-            createBooking: 'POST /api/bookings'
-        }
-    });
-});
-// Create new booking
-app.post('/api/bookings', (req, res) => {
-    try {
-        const booking = {
-            _id: `booking_${bookingIdCounter++}`,
-            bookingId: `EKE${Date.now()}`,
-            ...req.body,
-            status: 'pending',
-            createdAt: new Date()
-        };
-        
-        bookings.push(booking);
-        
-        console.log('📝 New booking received:', {
-            id: booking.bookingId,
-            name: booking.name,
-            room: booking.roomName,
-            total: `R${booking.totalPrice}`
-        });
-        
-        res.status(201).json({
-            success: true,
-            message: 'Booking created successfully',
-            data: booking
-        });
-        
-    } catch (error) {
-        console.error('Error creating booking:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error creating booking'
-        });
-    }
-});
-
-// Update booking status
-app.patch('/api/bookings/:id', (req, res) => {
-    const { id } = req.params;
-    const { status } = req.body;
-    
-    const bookingIndex = bookings.findIndex(b => b._id === id);
-    if (bookingIndex === -1) {
-        return res.status(404).json({
-            success: false,
-            message: 'Booking not found'
-        });
-    }
-    
-    bookings[bookingIndex].status = status;
-    
-    res.json({
-        success: true,
-        message: 'Booking status updated',
-        data: bookings[bookingIndex]
-    });
-});
-
-// Delete booking
-app.delete('/api/bookings/:id', (req, res) => {
-    const { id } = req.params;
-    const initialLength = bookings.length;
-    
-    bookings = bookings.filter(b => b._id !== id);
-    
-    if (bookings.length === initialLength) {
-        return res.status(404).json({
-            success: false,
-            message: 'Booking not found'
-        });
-    }
-    
-    res.json({
-        success: true,
-        message: 'Booking deleted successfully'
-    });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 EkeneStays Backend Server started!`);
-    console.log(`📍 Local: http://localhost:${PORT}`);
-    console.log(`📍 API Test: http://localhost:${PORT}/api/test`);
-    console.log(`📊 Bookings API: http://localhost:${PORT}/api/bookings`);
-    console.log(`🌐 Root: http://localhost:${PORT}/`);
-});*/
-const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -406,6 +265,78 @@ app.listen(port, () => {
   console.log(`🚀 EkeneStays Server running on port ${port}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📧 Email: ${process.env.GMAIL_USER ? 'Configured' : 'Not configured'}`);
+});
+
+module.exports = app;*/
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from root directory
+app.use(express.static(__dirname, {
+  index: false, // Don't serve index.html for all requests
+  extensions: ['html', 'css', 'js', 'png', 'jpg', 'ico', 'svg']
+}));
+
+// Your existing email setup and routes...
+
+// Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve other HTML pages if needed
+app.get('*.html', (req, res) => {
+  res.sendFile(path.join(__dirname, req.path));
+});
+
+// Your existing API routes...
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: '🎉 EkeneStays Backend is running!', 
+    timestamp: new Date().toLocaleString()
+  });
+});
+
+// Serve static files explicitly
+app.get('/styles.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'styles.css'));
+});
+
+app.get('/script.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'script.js'));
+});
+
+app.get('/images/:image', (req, res) => {
+  res.sendFile(path.join(__dirname, 'images', req.params.image));
+});
+
+// Catch-all route for SPA
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    // API routes that don't exist
+    res.status(404).json({ error: 'API endpoint not found' });
+  } else if (req.path.includes('.')) {
+    // Static files that don't exist
+    res.status(404).send('File not found');
+  } else {
+    // SPA fallback
+    res.sendFile(path.join(__dirname, 'index.html'));
+  }
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
 });
 
 module.exports = app;
