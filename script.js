@@ -437,3 +437,4 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('checkin-deluxe').min = today;
     document.getElementById('checkin-executive').min = today;
 });
+//klk
