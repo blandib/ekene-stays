@@ -143,32 +143,34 @@ module.exports = {
 };*/
 // notifications.js - REAL GMAIL EMAILS (WITH SSL FIX)
 // notifications.js - SENDS TO BOTH YOU AND CLIENT
+// notifications.js - WORKING VERSION FOR RENDER
 const nodemailer = require('nodemailer');
 
 console.log('🔧 Notifications module loaded');
+console.log('📧 GMAIL_USER:', process.env.GMAIL_USER || 'NOT SET IN RENDER');
 
 const sendEmailNotification = async (booking) => {
     console.log('\n📧 === STARTING EMAIL PROCESS ===');
-    console.log('Booking ID:', booking.bookingId);
-    console.log('Guest:', booking.name, booking.email);
-    console.log('Sending to OWNER:', process.env.GMAIL_USER);
-    console.log('Sending to CLIENT:', process.env.CLIENT_EMAIL);
+    console.log('📍 Calling from:', __filename);
     
     try {
-        // Check environment variables
+        // 1. Check environment variables
+        console.log('🔍 Step 1: Checking environment variables...');
+        console.log('GMAIL_USER:', process.env.GMAIL_USER || '❌ MISSING');
+        console.log('GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '***SET***' : '❌ MISSING');
+        console.log('CLIENT_EMAIL:', process.env.CLIENT_EMAIL || '❌ MISSING');
+
         if (!process.env.GMAIL_USER) {
-            throw new Error('GMAIL_USER is not set');
+            throw new Error('GMAIL_USER is not set in Render environment variables');
         }
         if (!process.env.GMAIL_APP_PASSWORD) {
-            throw new Error('GMAIL_APP_PASSWORD is not set');
-        }
-        if (!process.env.CLIENT_EMAIL) {
-            throw new Error('CLIENT_EMAIL is not set');
+            throw new Error('GMAIL_APP_PASSWORD is not set in Render environment variables');
         }
 
-        console.log('✅ Environment variables check passed');
+        console.log('✅ Environment variables check PASSED');
 
-        // Create transporter
+        // 2. Create transporter
+        console.log('🔍 Step 2: Creating email transporter...');
         const transporter = nodemailer.createTransporter({
             service: 'gmail',
             auth: {
@@ -182,151 +184,106 @@ const sendEmailNotification = async (booking) => {
 
         console.log('✅ Transporter created');
 
-        // Verify connection
+        // 3. Verify Gmail connection
+        console.log('🔍 Step 3: Verifying Gmail connection...');
         await transporter.verify();
-        console.log('✅ Connected to Gmail successfully');
+        console.log('✅ Gmail connection verified - READY TO SEND EMAILS');
 
-        // 1. Send email to YOU (Owner/Manager)
+        // 4. Send to YOU (Owner)
+        console.log('🔍 Step 4: Sending email to YOU...');
         const ownerEmail = {
             from: `"Ekene Stays" <${process.env.GMAIL_USER}>`,
-            to: process.env.GMAIL_USER, // This goes to YOU
-            subject: `🏨 NEW BOOKING: ${booking.roomName} - ${booking.bookingId}`,
+            to: process.env.GMAIL_USER, // Send to yourself
+            subject: `🏨 New Booking: ${booking.roomName} - ${booking.bookingId}`,
             html: `
-                <h2 style="color: #2563eb;">🎉 New Booking Received!</h2>
-                <div style="background: #f8fafc; padding: 15px; border-radius: 8px;">
-                    <h3 style="color: #1e293b;">Booking Details:</h3>
-                    <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-                    <p><strong>Guest Name:</strong> ${booking.name}</p>
-                    <p><strong>Email:</strong> ${booking.email}</p>
-                    <p><strong>Phone:</strong> ${booking.phoneNumber}</p>
-                    <p><strong>Room:</strong> ${booking.roomName}</p>
-                    <p><strong>Check-in:</strong> ${booking.checkIn}</p>
-                    <p><strong>Check-out:</strong> ${booking.checkOut}</p>
-                    <p><strong>Guests:</strong> ${booking.guests}</p>
-                    <p><strong>Total Price:</strong> R${booking.totalPrice}</p>
-                    ${booking.specialRequests ? `<p><strong>Special Requests:</strong> ${booking.specialRequests}</p>` : ''}
-                </div>
-                <p style="margin-top: 20px; color: #64748b;">
-                    This booking was received through your Ekene Stays booking system.
-                </p>
+                <h2>🎉 New Booking Received!</h2>
+                <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+                <p><strong>Guest:</strong> ${booking.name}</p>
+                <p><strong>Email:</strong> ${booking.email}</p>
+                <p><strong>Phone:</strong> ${booking.phoneNumber}</p>
+                <p><strong>Room:</strong> ${booking.roomName}</p>
+                <p><strong>Check-in:</strong> ${booking.checkIn}</p>
+                <p><strong>Check-out:</strong> ${booking.checkOut}</p>
+                <p><strong>Total:</strong> R${booking.totalPrice}</p>
             `
         };
 
-        console.log('📤 Sending owner email to YOU:', process.env.GMAIL_USER);
+        console.log('📤 Sending to YOU:', process.env.GMAIL_USER);
         const ownerResult = await transporter.sendMail(ownerEmail);
-        console.log('✅ Owner email sent to YOU:', ownerResult.messageId);
+        console.log('✅ Email sent to YOU successfully');
+        console.log('📧 Message ID:', ownerResult.messageId);
 
-        // 2. Send email to CLIENT (Ekene)
+        // 5. Send to CLIENT (Ekene)
+        console.log('🔍 Step 5: Sending email to CLIENT...');
         const clientEmail = {
-            from: `"Ekene Stays Booking System" <${process.env.GMAIL_USER}>`,
-            to: process.env.CLIENT_EMAIL, // This goes to EKENE
-            subject: `🔔 New Booking Notification: ${booking.roomName} - ${booking.bookingId}`,
+            from: `"Ekene Stays" <${process.env.GMAIL_USER}>`,
+            to: process.env.CLIENT_EMAIL, // Send to Ekene
+            subject: `🔔 New Booking: ${booking.roomName} - ${booking.bookingId}`,
             html: `
-                <h2 style="color: #059669;">🔔 New Booking Alert!</h2>
-                <div style="background: #f0fdf4; padding: 15px; border-radius: 8px;">
-                    <h3 style="color: #065f46;">You have a new booking at Ekene Stays!</h3>
-                    <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-                    <p><strong>Guest Name:</strong> ${booking.name}</p>
-                    <p><strong>Email:</strong> ${booking.email}</p>
-                    <p><strong>Phone:</strong> ${booking.phoneNumber}</p>
-                    <p><strong>Room:</strong> ${booking.roomName}</p>
-                    <p><strong>Check-in:</strong> ${booking.checkIn}</p>
-                    <p><strong>Check-out:</strong> ${booking.checkOut}</p>
-                    <p><strong>Guests:</strong> ${booking.guests}</p>
-                    <p><strong>Total Amount:</strong> R${booking.totalPrice}</p>
-                    ${booking.specialRequests ? `<p><strong>Guest Requests:</strong> ${booking.specialRequests}</p>` : ''}
-                </div>
-                <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                    <h4 style="color: #1e40af;">📊 Booking Summary</h4>
-                    <p><strong>Nights:</strong> ${booking.nights || 'Not specified'}</p>
-                    <p><strong>Revenue:</strong> R${booking.totalPrice}</p>
-                    <p><strong>Status:</strong> Pending confirmation</p>
-                </div>
-                <p style="text-align: center; margin-top: 20px; color: #64748b;">
-                    Please contact the guest to confirm availability and finalize arrangements.
-                </p>
+                <h2>🔔 New Booking Alert!</h2>
+                <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+                <p><strong>Guest:</strong> ${booking.name}</p>
+                <p><strong>Contact:</strong> ${booking.email} | ${booking.phoneNumber}</p>
+                <p><strong>Room:</strong> ${booking.roomName}</p>
+                <p><strong>Dates:</strong> ${booking.checkIn} to ${booking.checkOut}</p>
+                <p><strong>Amount:</strong> R${booking.totalPrice}</p>
             `
         };
 
-        console.log('📤 Sending client email to EKENE:', process.env.CLIENT_EMAIL);
+        console.log('📤 Sending to CLIENT:', process.env.CLIENT_EMAIL);
         const clientResult = await transporter.sendMail(clientEmail);
-        console.log('✅ Client email sent to EKENE:', clientResult.messageId);
+        console.log('✅ Email sent to CLIENT successfully');
+        console.log('📧 Message ID:', clientResult.messageId);
 
-        // 3. Send confirmation email to GUEST
+        // 6. Send to GUEST
         if (booking.email && booking.email.includes('@')) {
+            console.log('🔍 Step 6: Sending email to GUEST...');
             const guestEmail = {
                 from: `"Ekene Stays" <${process.env.GMAIL_USER}>`,
                 to: booking.email,
-                subject: `✅ Booking Confirmation - ${booking.bookingId}`,
+                subject: `✅ Booking Confirmed - ${booking.bookingId}`,
                 html: `
-                    <h2 style="color: #059669;">✅ Booking Confirmed!</h2>
-                    <div style="background: #f0fdf4; padding: 15px; border-radius: 8px;">
-                        <h3 style="color: #065f46;">Dear ${booking.name},</h3>
-                        <p>Thank you for booking with Ekene Stays! Your reservation has been received.</p>
-                        <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-                        <p><strong>Accommodation:</strong> ${booking.roomName}</p>
-                        <p><strong>Check-in:</strong> ${booking.checkIn}</p>
-                        <p><strong>Check-out:</strong> ${booking.checkOut}</p>
-                        <p><strong>Guests:</strong> ${booking.guests}</p>
-                        <p><strong>Total Amount:</strong> R${booking.totalPrice}</p>
-                        ${booking.specialRequests ? `<p><strong>Your Requests:</strong> ${booking.specialRequests}</p>` : ''}
-                    </div>
-                    <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                        <h4 style="color: #1e40af;">📞 Next Steps</h4>
-                        <p>The property owner will contact you within 24 hours to confirm your booking and provide check-in details.</p>
-                        <p>If you have any questions, please contact:</p>
-                        <p><strong>Email:</strong> ${process.env.CLIENT_EMAIL}</p>
-                        <p><strong>Phone:</strong> ${process.env.CLIENT_PHONE}</p>
-                    </div>
-                    <p style="text-align: center; margin-top: 20px; color: #64748b;">
-                        We look forward to hosting you at Ekene Stays!
-                    </p>
+                    <h2>✅ Booking Confirmed!</h2>
+                    <p>Dear ${booking.name}, your booking has been received.</p>
+                    <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+                    <p><strong>Room:</strong> ${booking.roomName}</p>
+                    <p><strong>Total:</strong> R${booking.totalPrice}</p>
                 `
             };
 
-            console.log('📤 Sending confirmation email to GUEST:', booking.email);
+            console.log('📤 Sending to GUEST:', booking.email);
             const guestResult = await transporter.sendMail(guestEmail);
-            console.log('✅ Guest confirmation sent:', guestResult.messageId);
-        } else {
-            console.log('⚠️  Skipping guest email - invalid email address');
+            console.log('✅ Email sent to GUEST successfully');
+            console.log('📧 Message ID:', guestResult.messageId);
         }
 
-        console.log('📧 === ALL EMAILS SENT SUCCESSFULLY ===');
-        console.log('✅ Sent to YOU (Owner):', process.env.GMAIL_USER);
-        console.log('✅ Sent to CLIENT (Ekene):', process.env.CLIENT_EMAIL);
+        console.log('🎉🎉🎉 ALL EMAILS SENT SUCCESSFULLY! 🎉🎉🎉');
+        console.log('✅ Sent to YOU:', process.env.GMAIL_USER);
+        console.log('✅ Sent to CLIENT:', process.env.CLIENT_EMAIL);
         console.log('✅ Sent to GUEST:', booking.email);
         
         return { 
             success: true, 
-            message: 'Emails sent successfully to owner, client, and guest',
-            details: {
-                owner: process.env.GMAIL_USER,
-                client: process.env.CLIENT_EMAIL,
-                guest: booking.email
-            }
+            message: 'All emails sent successfully' 
         };
 
     } catch (error) {
-        console.error('❌ EMAIL PROCESS FAILED:', error.message);
-        return { success: false, error: error.message };
+        console.error('💥 EMAIL PROCESS FAILED:', error.message);
+        console.error('Full error:', error);
+        return { 
+            success: false, 
+            error: error.message 
+        };
     }
 };
 
 const sendSMSNotification = async (booking) => {
-    console.log('\n📱 SMS NOTIFICATIONS:');
-    console.log('TO YOU: New booking received -', booking.name, '-', booking.roomName, '- R' + booking.totalPrice);
-    console.log('TO CLIENT: New booking -', booking.bookingId, '- Contact:', booking.phoneNumber);
-    if (booking.phoneNumber) {
-        console.log('TO GUEST: Booking confirmed - ID:', booking.bookingId);
-    }
-    console.log('📱 === END SMS NOTIFICATIONS ===\n');
-    
-    return { success: true, message: 'SMS notifications logged above' };
+    console.log('📱 SMS notification for booking:', booking.bookingId);
+    return { success: true, message: 'SMS would be sent' };
 };
 
 const sendGuestConfirmation = async (booking) => {
-    // Already handled in sendEmailNotification
-    return { success: true, message: 'Guest confirmation handled in main email function' };
+    return { success: true, message: 'Guest confirmation handled' };
 };
 
 module.exports = {
