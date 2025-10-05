@@ -144,14 +144,14 @@ module.exports = {
 // notifications.js - REAL GMAIL EMAILS (WITH SSL FIX)
 // notifications.js - SENDS TO BOTH YOU AND CLIENT
 // notifications.js - WORKING VERSION FOR RENDER
+// notifications.js - CORRECTED VERSION
 const nodemailer = require('nodemailer');
 
 console.log('🔧 Notifications module loaded');
-console.log('📧 GMAIL_USER:', process.env.GMAIL_USER || 'NOT SET IN RENDER');
+console.log('📧 GMAIL_USER:', process.env.GMAIL_USER || 'NOT SET');
 
 const sendEmailNotification = async (booking) => {
     console.log('\n📧 === STARTING EMAIL PROCESS ===');
-    console.log('📍 Calling from:', __filename);
     
     try {
         // 1. Check environment variables
@@ -161,17 +161,17 @@ const sendEmailNotification = async (booking) => {
         console.log('CLIENT_EMAIL:', process.env.CLIENT_EMAIL || '❌ MISSING');
 
         if (!process.env.GMAIL_USER) {
-            throw new Error('GMAIL_USER is not set in Render environment variables');
+            throw new Error('GMAIL_USER is not set');
         }
         if (!process.env.GMAIL_APP_PASSWORD) {
-            throw new Error('GMAIL_APP_PASSWORD is not set in Render environment variables');
+            throw new Error('GMAIL_APP_PASSWORD is not set');
         }
 
         console.log('✅ Environment variables check PASSED');
 
-        // 2. Create transporter
+        // 2. Create transporter - FIXED: createTransport (no 'e')
         console.log('🔍 Step 2: Creating email transporter...');
-        const transporter = nodemailer.createTransporter({
+        const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
                 user: process.env.GMAIL_USER,
@@ -193,7 +193,7 @@ const sendEmailNotification = async (booking) => {
         console.log('🔍 Step 4: Sending email to YOU...');
         const ownerEmail = {
             from: `"Ekene Stays" <${process.env.GMAIL_USER}>`,
-            to: process.env.GMAIL_USER, // Send to yourself
+            to: process.env.GMAIL_USER,
             subject: `🏨 New Booking: ${booking.roomName} - ${booking.bookingId}`,
             html: `
                 <h2>🎉 New Booking Received!</h2>
@@ -211,13 +211,12 @@ const sendEmailNotification = async (booking) => {
         console.log('📤 Sending to YOU:', process.env.GMAIL_USER);
         const ownerResult = await transporter.sendMail(ownerEmail);
         console.log('✅ Email sent to YOU successfully');
-        console.log('📧 Message ID:', ownerResult.messageId);
 
         // 5. Send to CLIENT (Ekene)
         console.log('🔍 Step 5: Sending email to CLIENT...');
         const clientEmail = {
             from: `"Ekene Stays" <${process.env.GMAIL_USER}>`,
-            to: process.env.CLIENT_EMAIL, // Send to Ekene
+            to: process.env.CLIENT_EMAIL,
             subject: `🔔 New Booking: ${booking.roomName} - ${booking.bookingId}`,
             html: `
                 <h2>🔔 New Booking Alert!</h2>
@@ -233,7 +232,6 @@ const sendEmailNotification = async (booking) => {
         console.log('📤 Sending to CLIENT:', process.env.CLIENT_EMAIL);
         const clientResult = await transporter.sendMail(clientEmail);
         console.log('✅ Email sent to CLIENT successfully');
-        console.log('📧 Message ID:', clientResult.messageId);
 
         // 6. Send to GUEST
         if (booking.email && booking.email.includes('@')) {
@@ -254,13 +252,9 @@ const sendEmailNotification = async (booking) => {
             console.log('📤 Sending to GUEST:', booking.email);
             const guestResult = await transporter.sendMail(guestEmail);
             console.log('✅ Email sent to GUEST successfully');
-            console.log('📧 Message ID:', guestResult.messageId);
         }
 
-        console.log('🎉🎉🎉 ALL EMAILS SENT SUCCESSFULLY! 🎉🎉🎉');
-        console.log('✅ Sent to YOU:', process.env.GMAIL_USER);
-        console.log('✅ Sent to CLIENT:', process.env.CLIENT_EMAIL);
-        console.log('✅ Sent to GUEST:', booking.email);
+        console.log('🎉 ALL EMAILS SENT SUCCESSFULLY!');
         
         return { 
             success: true, 
@@ -269,7 +263,6 @@ const sendEmailNotification = async (booking) => {
 
     } catch (error) {
         console.error('💥 EMAIL PROCESS FAILED:', error.message);
-        console.error('Full error:', error);
         return { 
             success: false, 
             error: error.message 

@@ -741,16 +741,18 @@ app.post('/api/test-email', async (req, res) => {
             });
         }
 
-        const transporter = nodemailer.createTransporter({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
+        const createTransporter = () => {
+  return nodemailer.createTransport({  // ← FIXED: createTransport (no 'e')
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+};
 
         await transporter.verify();
         console.log('✅ Gmail connection verified');
