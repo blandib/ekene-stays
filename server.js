@@ -6,7 +6,7 @@ require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
 // Import notification services
-const { sendEmailNotification, sendSMSNotification, sendGuestConfirmation } = require('./ekenestays-backend/notifications');
+const { sendEmailNotification, sendSMSNotification, sendGuestConfirmation } = require('./backend/notifications');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -132,7 +132,7 @@ app.get('/api/bookings', (req, res) => {
     });
 });
 // Use your actual Vercel backend
-const API_BASE_URL = 'https://ekene-stays.vercel.app/api';
+const API_BASE_URL = 'https://ekene-stays.onrender.com/api';
 
 // Test if backend is working
 async function testBackendConnection() {
@@ -509,8 +509,8 @@ app.listen(PORT, () => {
     console.log(`🚀 EkeneStays Server running on port ${PORT}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📧 Email: ${process.env.GMAIL_USER ? 'Configured' : 'Not configured'}`);
-});*/
-const express = require('express');
+});
+/*const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
@@ -656,4 +656,292 @@ app.post('/api/bookings', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);
+});*/
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+const { MongoClient } = require('mongodb');
+
+// Import notification services
+const { sendEmailNotification, sendSMSNotification, sendGuestConfirmation } = require('./backend/notifications');
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('.'));
+
+// MongoDB connection variables
+let db;
+let client;
+
+// Connect to MongoDB on startup
+async function connectToMongoDB() {
+    try {
+        client = new MongoClient(process.env.MONGODB_URI);
+        await client.connect();
+        console.log('✅ Connected to MongoDB');
+        
+        db = client.db(process.env.DB_NAME);
+        await db.command({ ping: 1 });
+        console.log('✅ MongoDB connection test successful');
+        
+        return db;
+    } catch (error) {
+        console.error('❌ Failed to connect to MongoDB:', error);
+        throw error;
+    }
+}
+
+// Store bookings in memory (temporary)
+let bookings = [];
+let bookingIdCounter = 1;
+
+// ✅ Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// ✅ DEBUG EMAIL ENDPOINT - ADD THIS
+app.get('/api/debug-email', (req, res) => {
+    const config = {
+        gmailUser: process.env.GMAIL_USER || '❌ NOT SET',
+        gmailAppPassword: process.env.GMAIL_APP_PASSWORD ? '***SET***' : '❌ NOT SET',
+        mongodbUri: process.env.MONGODB_URI ? '***SET***' : '❌ NOT SET',
+        dbName: process.env.DB_NAME || '❌ NOT SET',
+        nodeEnv: process.env.NODE_ENV || 'development'
+    };
+    
+    console.log('🔍 Email Debug Config:', config);
+    
+    res.json({ 
+        success: true, 
+        message: 'Email configuration debug',
+        config: config,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ✅ TEST EMAIL ENDPOINT - ADD THIS
+app.post('/api/test-email', async (req, res) => {
+    try {
+        console.log('📧 Testing email configuration...');
+        
+        if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+            return res.status(500).json({
+                success: false,
+                error: 'Missing email environment variables',
+                details: {
+                    GMAIL_USER: process.env.GMAIL_USER ? 'SET' : 'MISSING',
+                    GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD ? 'SET' : 'MISSING'
+                }
+            });
+        }
+
+        const transporter = nodemailer.createTransporter({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
+
+        await transporter.verify();
+        console.log('✅ Gmail connection verified');
+
+        const mailOptions = {
+            from: process.env.GMAIL_USER,
+            to: process.env.GMAIL_USER, // Send to yourself
+            subject: '🏨 EkeneStays - Test Email',
+            html: `
+                <h2>Test Email from EkeneStays</h2>
+                <p>This is a test email sent at: ${new Date().toLocaleString()}</p>
+                <p>If you receive this, your email configuration is working!</p>
+            `
+        };
+
+        const result = await transporter.sendMail(mailOptions);
+        console.log('✅ Test email sent successfully');
+        
+        res.json({ 
+            success: true, 
+            message: 'Test email sent successfully',
+            messageId: result.messageId
+        });
+        
+    } catch (error) {
+        console.error('❌ Test email failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message
+        });
+    }
+});
+
+// Root API route
+app.get('/api', (req, res) => {
+    res.json({ 
+        message: '🏨 EkeneStays Backend API is running!', 
+        status: 'OK',
+        timestamp: new Date().toLocaleString(),
+        database: db ? '✅ Connected' : '❌ Disconnected',
+        email: process.env.GMAIL_USER ? '✅ Configured' : '❌ Not configured',
+        endpoints: {
+            test: 'GET /api/test',
+            debugEmail: 'GET /api/debug-email',
+            testEmail: 'POST /api/test-email',
+            getBookings: 'GET /api/bookings',
+            createBooking: 'POST /api/bookings'
+        }
+    });
+});
+
+// Test route
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        message: '✅ Backend working!',
+        timestamp: new Date().toLocaleString()
+    });
+});
+
+// Get all bookings
+app.get('/api/bookings', (req, res) => {
+    res.json({ 
+        success: true, 
+        data: bookings,
+        count: bookings.length
+    });
+});
+
+// Create new booking
+// Create new booking - FAST VERSION
+app.post('/api/bookings', async (req, res) => {
+    try {
+        const booking = {
+            _id: `booking_${bookingIdCounter++}`,
+            bookingId: `EKE${Date.now()}`,
+            ...req.body,
+            status: 'pending',
+            createdAt: new Date()
+        };
+        
+        bookings.push(booking);
+        
+        console.log('📝 New booking received:', {
+            id: booking.bookingId,
+            name: booking.name,
+            email: booking.email,
+            room: booking.roomName,
+            total: `R${booking.totalPrice}`
+        });
+        
+        // ✅ IMMEDIATE RESPONSE - don't wait for emails
+        res.status(201).json({
+            success: true,
+            message: 'Booking created successfully',
+            data: booking
+        });
+        
+        // ✅ SEND EMAILS IN BACKGROUND (don't block response)
+        setTimeout(async () => {
+            try {
+                console.log('📧 Sending background emails...');
+                const emailResult = await sendEmailNotification(booking);
+                const smsResult = await sendSMSNotification(booking);
+                console.log('✅ Background emails completed:', emailResult);
+            } catch (emailError) {
+                console.error('❌ Background emails failed:', emailError);
+            }
+        }, 100);
+        
+    } catch (error) {
+        console.error('❌ Error creating booking:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error creating booking',
+            error: error.message
+        });
+    }
+});
+
+// Update booking status
+app.patch('/api/bookings/:id', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    const bookingIndex = bookings.findIndex(b => b._id === id);
+    if (bookingIndex === -1) {
+        return res.status(404).json({
+            success: false,
+            message: 'Booking not found'
+        });
+    }
+    
+    bookings[bookingIndex].status = status;
+    
+    res.json({
+        success: true,
+        message: 'Booking status updated',
+        data: bookings[bookingIndex]
+    });
+});
+
+// Delete booking
+app.delete('/api/bookings/:id', (req, res) => {
+    const { id } = req.params;
+    const initialLength = bookings.length;
+    
+    bookings = bookings.filter(b => b._id !== id);
+    
+    if (bookings.length === initialLength) {
+        return res.status(404).json({
+            success: false,
+            message: 'Booking not found'
+        });
+    }
+    
+    res.json({
+        success: true,
+        message: 'Booking deleted successfully'
+    });
+});
+
+// ✅ Catch-all route for SPA
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Start the server
+async function startServer() {
+    try {
+        await connectToMongoDB();
+        app.listen(port, () => {
+            console.log(`🚀 EkeneStays Server started on port ${port}`);
+            console.log(`📧 GMAIL_USER: ${process.env.GMAIL_USER || 'NOT SET'}`);
+            console.log(`🔑 GMAIL_APP_PASSWORD: ${process.env.GMAIL_APP_PASSWORD ? 'SET' : 'NOT SET'}`);
+        });
+    } catch (error) {
+        console.error('❌ Failed to start server:', error);
+        app.listen(port, () => {
+            console.log(`🚀 EkeneStays Server started (without MongoDB) on port ${port}`);
+        });
+    }
+}
+
+// Handle graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('🛑 Shutting down server...');
+    if (client) {
+        await client.close();
+    }
+    process.exit(0);
+});
+
+// Start the application
+startServer();
