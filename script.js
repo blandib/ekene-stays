@@ -126,7 +126,7 @@ function calculatePrice(roomType) {
     totalElement.style.display = 'block';
 }
 
-// Book room function - UPDATED FOR BACKEND
+// Book room function - UPDATED WITH FORMSUBMIT EMAILS
 async function bookRoom(roomType) {
     const roomName = roomType === 'deluxe' ? 'Deluxe Room' : 'Executive Suite';
     const nameId = `name-${roomType}`;
@@ -182,13 +182,14 @@ async function bookRoom(roomType) {
         roomName: roomName,
         name: name,
         email: email,
-        phoneNumber: phone, // Changed from 'phone' to 'phoneNumber' to match backend
-        checkIn: checkin,   // Changed from 'checkin' to 'checkIn' to match backend
-        checkOut: checkout, // Changed from 'checkout' to 'checkOut' to match backend
+        phoneNumber: phone,
+        checkIn: checkin,
+        checkOut: checkout,
         guests: parseInt(guests),
         specialRequests: specialRequests,
         totalPrice: totalPrice,
-        nights: nights
+        nights: nights,
+        bookingId: `EKE${Date.now()}`
     };
     
     try {
@@ -198,8 +199,39 @@ async function bookRoom(roomType) {
         bookBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         bookBtn.disabled = true;
         
-        // Save booking to backend
+        // 1. Save booking to backend
         const savedBooking = await saveBookingToDatabase(booking);
+        
+        // 2. Send email to CLIENT using FormSubmit (FREE)
+        const formData = new FormData();
+        formData.append('_template', 'basic');
+        formData.append('_subject', `🏨 New Booking: ${roomName} - ${booking.bookingId}`);
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('phone', phone);
+        formData.append('message', `
+NEW BOOKING RECEIVED! 📧
+
+Booking ID: ${booking.bookingId}
+Guest Name: ${name}
+Guest Email: ${email}
+Guest Phone: ${phone}
+Room: ${roomName}
+Check-in: ${checkin}
+Check-out: ${checkout}
+Guests: ${guests}
+Nights: ${nights}
+Total Price: R${totalPrice.toFixed(2)}
+Special Requests: ${specialRequests || 'None'}
+
+This booking was received through Ekene Stays booking system.
+        `);
+        
+        // Send email to Ekene (your client)
+        await fetch('https://formsubmit.co/ajax/Emmanuelekene2307@gmail.com', {
+            method: 'POST',
+            body: formData
+        });
         
         // Display confirmation message
         const confirmationElement = document.getElementById(confirmationId);
@@ -211,7 +243,8 @@ async function bookRoom(roomType) {
             <p><strong>Check-out:</strong> ${checkout}</p>
             <p><strong>Guests:</strong> ${guests}</p>
             <p><strong>Total:</strong> R${totalPrice.toFixed(2)}</p>
-            <p>We will contact you shortly to confirm your reservation.</p>
+            <p style="color: green; font-weight: bold;">✅ Notification sent to Ekene Stays!</p>
+            <p>You will be contacted shortly to confirm your reservation.</p>
         `;
         confirmationElement.style.display = 'block';
         
@@ -260,7 +293,6 @@ async function saveBookingToDatabase(booking) {
     return result.data;
 }
 
-// Update admin panel with bookings from backend
 // Update admin panel with bookings from backend
 async function updateAdminPanel() {
     const bookingsList = document.getElementById('bookings-list');
@@ -437,4 +469,3 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('checkin-deluxe').min = today;
     document.getElementById('checkin-executive').min = today;
 });
-//klk
